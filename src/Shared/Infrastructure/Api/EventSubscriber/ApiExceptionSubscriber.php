@@ -4,12 +4,13 @@ declare(strict_types = 1);
 
 namespace CodelyTv\Shared\Infrastructure\Api\EventSubscriber;
 
-use CodelyTv\Shared\Infrastructure\Api\Exception\ApiExceptionsHttpStatusCodeMapping;
 use CodelyTv\Shared\Domain\DomainError;
+use CodelyTv\Shared\Infrastructure\Api\Exception\ApiExceptionsHttpStatusCodeMapping;
 use Exception;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -20,18 +21,18 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
 
     public function __construct(ViewHandler $viewHandler, ApiExceptionsHttpStatusCodeMapping $exceptionHandler)
     {
-        $this->viewHandler      = $viewHandler;
+        $this->viewHandler = $viewHandler;
         $this->exceptionHandler = $exceptionHandler;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [KernelEvents::EXCEPTION => ['onKernelException', 0]];
     }
 
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onKernelException(GetResponseForExceptionEvent $event): void
     {
-        $exception      = $event->getException();
+        $exception = $event->getException();
         $exceptionClass = get_class($exception);
 
         if ($this->exceptionHandler->exists($exceptionClass)) {
@@ -39,7 +40,7 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
         }
     }
 
-    private function createResponseFromApiErrorException(Exception $exception)
+    private function createResponseFromApiErrorException(Exception $exception): Response
     {
         $data = [
             'code'    => $this->getExceptionCode($exception),
@@ -47,20 +48,20 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
         ];
 
         return $this->viewHandler->handle(
-            View::create($data, $this->exceptionHandler->getStatusCode(get_class($exception)))
+            View::create($data, $this->exceptionHandler->getStatusCode(\get_class($exception)))
         );
     }
 
-    private function getExceptionCode(Exception $exception)
+    private function getExceptionCode(Exception $exception): string
     {
         $moduleExceptionClass = DomainError::class;
 
-        return $exception instanceof $moduleExceptionClass ? $this->domainErrorCode($exception) : $exception->getCode();
+        return $exception instanceof $moduleExceptionClass ? $this->domainErrorCode($exception) :
+            (string)$exception->getCode();
     }
 
-    private function domainErrorCode($error): string
+    private function domainErrorCode(DomainError $error): string
     {
-        /** @var DomainError $error */
         return $error->errorCode();
     }
 }

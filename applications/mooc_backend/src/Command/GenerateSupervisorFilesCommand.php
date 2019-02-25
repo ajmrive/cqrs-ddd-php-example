@@ -24,7 +24,7 @@ final class GenerateSupervisorFilesCommand extends Command
         $this->configuration = $configuration;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('codelytv:domain-events:generate-supervisor-files')
@@ -32,7 +32,7 @@ final class GenerateSupervisorFilesCommand extends Command
             ->addArgument('command-path', InputArgument::OPTIONAL, 'Path on this is gonna be deployed', '/var/www');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         /** @var string $path */
         $path = $input->getArgument('command-path');
@@ -40,7 +40,7 @@ final class GenerateSupervisorFilesCommand extends Command
         each($this->configCreator($path), $this->configuration->all());
     }
 
-    private function configCreator(string $path)
+    private function configCreator(string $path): callable
     {
         return function (DomainEventSubscriberConfig $config) use ($path) {
             $fileContent = str_replace(
@@ -53,7 +53,7 @@ final class GenerateSupervisorFilesCommand extends Command
         };
     }
 
-    private function template()
+    private function template(): string
     {
         return <<<EOF
 [program:codely_{subscriber}]
@@ -68,7 +68,7 @@ autostart    = {enabled}
 EOF;
     }
 
-    private function fileName(string $queue)
+    private function fileName(string $queue): string
     {
         return sprintf('%s/%s.ini', self::SUPERVISOR_PATH, $queue);
     }

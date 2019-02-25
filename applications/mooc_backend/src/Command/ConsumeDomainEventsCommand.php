@@ -33,7 +33,7 @@ final class ConsumeDomainEventsCommand extends Command
         $this->connections = $connections;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('codelytv:domain-events:consume')
@@ -42,7 +42,7 @@ final class ConsumeDomainEventsCommand extends Command
             ->addArgument('quantity', InputArgument::REQUIRED, 'Quantity of events to process');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         /** @var string $subscriberName */
         $subscriberName = $input->getArgument('subscriber');
@@ -52,7 +52,7 @@ final class ConsumeDomainEventsCommand extends Command
         repeat(pipe($this->consume($subscriberName), $this->connections->allConnectionsClearer()), $messagesToProcess);
     }
 
-    private function consume(string $subscriberName)
+    private function consume(string $subscriberName): callable
     {
         return function () use ($subscriberName) {
             apply($this->consumer, [$this->mapping->byName($subscriberName), $subscriberName]);

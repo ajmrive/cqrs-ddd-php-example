@@ -6,5 +6,5 @@ namespace CodelyTv\Mooc\Notification\Domain;
 
 interface Notifier
 {
-    public function notify(NotificationText $text, NotificationType $action);
+    public function notify(NotificationText $text, NotificationType $action): void;
 }
